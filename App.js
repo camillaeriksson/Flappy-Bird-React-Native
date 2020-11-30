@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { Component } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Constants from './Constants';
 import { GameEngine } from 'react-native-game-engine';
 import Matter from 'matter-js';
@@ -28,12 +28,14 @@ export const generatePipes = () => {
 export default class App extends Component {
   constructor(props) {
     super(props);
-    this.gameEngine = null;
-    this.entities = this.setupWorld()
 
     this.state = {
-      runnit: true
+      running: true
     }
+
+    this.gameEngine = null
+    this.entities = this.setupWorld()
+
   }
 
   setupWorld = () => {
@@ -54,6 +56,12 @@ export default class App extends Component {
 
     Matter.World.add(world, [bird, floor, pipe1, pipe2, pipe3, pipe4])
 
+    Matter.Events.on(engine, "collisionStart", (event) => {
+      let pairs = event.pairs;
+
+      this.gameEngine.dispatch({ type: "game-over" })
+    })
+
     return {
       physics: { engine: engine, world: world },
       bird: { body: bird, size: [50, 50], color: 'red', renderer: Bird },
@@ -66,17 +74,35 @@ export default class App extends Component {
     }
   }
 
+  onEvent = (e) => {
+    if (e.type === "game-over") {
+      this.setState({
+        running: false
+      })
+    }
+  }
+
+  reset = () => {
+
+  }
+
   render() {
     return (
     <View style={styles.container}>
       <GameEngine
-        ref={(ref) => {this.GameEngine = ref; }}
+        ref={(ref) => {this.gameEngine = ref; }}
         style={styles.gameContainer}
         systems={[Physics]}
+        onEvent={this.onEvent}
         running={this.state.running}
         entities={this.entities} 
         />
       <StatusBar style="auto" />
+      {!this.state.running && <TouchableOpacity onPress={this.reset} style={styles.fullScreenButton}>
+        <View style={styles.fullScreen}>
+          <Text style={styles.gameOverText}>Game Over</Text>
+        </View>
+      </TouchableOpacity>}
     </View>
     )
   };
@@ -87,4 +113,30 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  gameContainer: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0
+  },
+  fullScreenButton: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flex: 1
+  },
+  fullScreen: {
+    flex: 1,
+    backgroundColor: 'black',
+    opacity: 0.8,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  gameOverText: {
+    color: 'white',
+    fontSize: 48
+  }
 });

@@ -30,6 +30,10 @@ export default class App extends Component {
     super(props);
     this.gameEngine = null;
     this.entities = this.setupWorld()
+
+    this.state = {
+      runnit: true
+    }
   }
 
   setupWorld = () => {
@@ -69,6 +73,7 @@ export default class App extends Component {
         ref={(ref) => {this.GameEngine = ref; }}
         style={styles.gameContainer}
         systems={[Physics]}
+        running={this.state.running}
         entities={this.entities} 
         />
       <StatusBar style="auto" />

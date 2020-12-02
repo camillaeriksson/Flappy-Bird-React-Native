@@ -83,6 +83,10 @@ export default class App extends Component {
   }
 
   reset = () => {
+    this.gameEngine.swap(this.setupWorld())
+    this.setState({
+      running: true
+    })
 
   }
 
